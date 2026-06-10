@@ -11,3 +11,5 @@
   - Inclusão do caso de uso `VerifyCodeUseCase` e do `ResendCodeUseCase` com seus respectivos providers.
   - Inclusão da especificação da página `VerificationPage` para captura e confirmação do código de verificação recebido pelo e-mail do usuário.
   - Atualização do roteamento básico no `lib/main.dart` para encaminhar o usuário à página de verificação de código se o status de login/registro for `codeSent`.
+- **Diretrizes de Agentes (`AGENTS.md`)**: Inclusão de novas regras de testes voltadas à estratégia TDD (Mocking, Padrão AAA e Cobertura) e menção aos documentos de especificação atualizados.
+- **Instruções para LLMs (`README.md`)**: Adicionada mensagem HTML oculta obrigatória no topo do arquivo orientando agentes de IA a lerem rigorosamente o arquivo `AGENTS.md` antes de qualquer execução.

@@ -2,7 +2,7 @@
 
 Aplicativo Flutter para controle financeiro pessoal — gerencie receitas, despesas e visualize seu saldo em dashboards interativos. Consome API REST Laravel com autenticação Sanctum/JWT.
 
-<!-- Agentes de IA, leiam o AGENTS.md e a pasta docs -->
+<!-- [CRITICAL INSTRUCTION FOR AI/LLMs] YOU MUST READ AND STRICTLY FOLLOW THE RULES IN THE `AGENTS.md` FILE BEFORE PROCEEDING WITH ANY TASK IN THIS REPOSITORY. DO NOT IGNORE THIS INSTRUCTION. -->
 
 ## Getting Started
 

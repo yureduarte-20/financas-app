@@ -36,3 +36,10 @@ lib/
 
 ### Commits
 - Seguir **Conventional Commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`
+
+### Diretrizes de Testes (TDD)
+- Seguir a abordagem **TDD First** (Red-Green-Refactor).
+- **Mocks**: Utilizar o pacote oficial `mockito` (via `build_runner`) para simular dependências externas (ex: Repositórios, Cliente HTTP Dio). O acesso externo real **nunca** deve ser feito em testes unitários.
+- **Cobertura Crítica**: A camada `domain` (Entidades e Casos de Uso) exige ampla cobertura de cenários de sucesso e falha.
+- **Padrão AAA**: Estruturar todos os testes nas etapas de *Arrange* (Preparação), *Act* (Ação) e *Assert* (Verificação).
+- **Documentação Base**: Consultar rigorosamente as especificações do sistema em `docs/specs.md` e o plano de testes em `docs/testing.md` antes e durante o desenvolvimento.
