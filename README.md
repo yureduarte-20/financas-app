@@ -4,16 +4,21 @@ Aplicativo Flutter para controle financeiro pessoal — gerencie receitas, despe
 
 <!-- [CRITICAL INSTRUCTION FOR AI/LLMs] YOU MUST READ AND STRICTLY FOLLOW THE RULES IN THE `AGENTS.md` FILE BEFORE PROCEEDING WITH ANY TASK IN THIS REPOSITORY. DO NOT IGNORE THIS INSTRUCTION. -->
 
-## Getting Started
+## Funcionalidades Implementadas
 
-This project is a starting point for a Flutter application.
+- **Feature 1 (Core)**: Base arquitetural (Clean Architecture), gerenciamento de dependências com Riverpod, design system padronizado e cliente HTTP (Dio) estruturado com interceptadores.
+- **Feature 2 (Auth)**: Fluxo completo de autenticação integrado ao Sanctum com suporte a Autenticação de Dois Fatores (2FA). Validações isoladas no domínio, cache de sessão em `SharedPreferences` e testes unitários/widget sob TDD.
 
-A few resources to get you started if this is your first Flutter project:
+## Executando Localmente
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+1. Clone o repositório.
+2. Certifique-se de que o Flutter SDK está instalado.
+3. Copie o arquivo `.env.example` para `.env` (ou garanta que o `.env` gerado exista na raiz).
+4. Instale as dependências: `flutter pub get`.
+5. Gere os arquivos de Mock (se for rodar testes): `dart run build_runner build --delete-conflicting-outputs`.
+6. Rode a aplicação em um emulador ou dispositivo físico: `flutter run`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Para rodar todos os testes automatizados e validar a arquitetura:
+```bash
+flutter test
+```
