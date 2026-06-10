@@ -5,6 +5,7 @@ import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/verify_code_usecase.dart';
 import '../../domain/usecases/resend_code_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/get_profile_usecase.dart';
 
 enum AuthStatus { initial, loading, codeSent, authenticated, unauthenticated, error }
 
@@ -46,6 +47,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final VerifyCodeUseCase verifyCodeUseCase;
   final ResendCodeUseCase resendCodeUseCase;
   final LogoutUseCase logoutUseCase;
+  final GetProfileUseCase getProfileUseCase;
 
   AuthNotifier({
     required this.loginUseCase,
@@ -53,6 +55,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required this.verifyCodeUseCase,
     required this.resendCodeUseCase,
     required this.logoutUseCase,
+    required this.getProfileUseCase,
   }) : super(AuthState());
 
   Future<void> login({required String email, required String password}) async {
@@ -104,4 +107,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await logoutUseCase();
     state = state.copyWith(status: AuthStatus.unauthenticated, user: null, email: null, errorMessage: null);
   }
+
+  Future<void> checkAuthStatus() async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await getProfileUseCase();
+    result.fold(
+      (failure) => state = state.copyWith(status: AuthStatus.unauthenticated, user: null, errorMessage: null),
+      (user) => state = state.copyWith(status: AuthStatus.authenticated, user: user, errorMessage: null),
+    );
+  }
 }
+

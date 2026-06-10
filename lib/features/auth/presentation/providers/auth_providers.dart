@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/auth_interceptor.dart';
 import '../../data/datasources/auth_local_datasource.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -18,7 +19,12 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError();
 });
 
-final dioProvider = Provider((ref) => DioClient().instance);
+final dioProvider = Provider((ref) {
+  final dio = DioClient().instance;
+  final local = ref.read(authLocalDataSourceProvider);
+  dio.interceptors.add(AuthInterceptor(local));
+  return dio;
+});
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   return AuthRemoteDataSourceImpl(ref.read(dioProvider));
@@ -49,5 +55,6 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
     verifyCodeUseCase: ref.read(verifyCodeUseCaseProvider),
     resendCodeUseCase: ref.read(resendCodeUseCaseProvider),
     logoutUseCase: ref.read(logoutUseCaseProvider),
+    getProfileUseCase: ref.read(getProfileUseCaseProvider),
   );
 });

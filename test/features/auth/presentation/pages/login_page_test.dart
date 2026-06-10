@@ -19,6 +19,8 @@ class MockAuthNotifier extends StateNotifier<AuthState> implements AuthNotifier 
   late var resendCodeUseCase;
   @override
   late var logoutUseCase;
+  @override
+  late var getProfileUseCase;
 
   @override
   Future<void> login({required String email, required String password}) async {}
@@ -37,6 +39,9 @@ class MockAuthNotifier extends StateNotifier<AuthState> implements AuthNotifier 
 
   @override
   Future<void> logout() async {}
+
+  @override
+  Future<void> checkAuthStatus() async {}
 }
 
 void main() {

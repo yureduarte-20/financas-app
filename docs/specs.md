@@ -1297,7 +1297,7 @@ pseudocódigo:
 ```
 lib/features/dashboard/domain/entities/dashboard_summary.dart
 - ação: criar
-- Agrega saldo total, total de receitas, total de despesas e distribuição por categoria
+- Agrega saldo total, total de receitas, total de despesas, distribuição por categoria e lista de transações
 
 pseudocódigo:
   classe CategorySummary {
@@ -1305,8 +1305,20 @@ pseudocódigo:
     final String categoryName
     final String categoryColor
     final double total
+    final int count
 
-    construtor CategorySummary({required this.categoryId, required this.categoryName, required this.categoryColor, required this.total})
+    construtor CategorySummary({required this.categoryId, required this.categoryName, required this.categoryColor, required this.total, required this.count})
+  }
+
+  classe DashboardTransaction {
+    final String id
+    final String name
+    final double value
+    final String type
+    final DateTime expenseDate
+    final String categoryId
+
+    construtor DashboardTransaction({required this.id, required this.name, required this.value, required this.type, required this.expenseDate, required this.categoryId})
   }
 
   classe DashboardSummary {
@@ -1314,8 +1326,20 @@ pseudocódigo:
     final double totalIncome
     final double totalExpense
     final List<CategorySummary> categoryBreakdown
+    final List<DashboardTransaction> transactions
 
-    construtor DashboardSummary({required this.balance, required this.totalIncome, required this.totalExpense, required this.categoryBreakdown})
+    construtor DashboardSummary({required this.balance, required this.totalIncome, required this.totalExpense, required this.categoryBreakdown, required this.transactions})
+  }
+```
+
+```
+lib/features/dashboard/domain/repositories/dashboard_repository.dart
+- ação: criar
+- Contrato do repositório para buscar consolidado de dados
+
+pseudocódigo:
+  interface DashboardRepository {
+    Future<Either<Failure, DashboardSummary>> getSummary({String? startDate, String? endDate})
   }
 ```
 
@@ -1323,56 +1347,46 @@ pseudocódigo:
 lib/features/dashboard/domain/usecases/get_dashboard_summary_usecase.dart
 - ação: criar
 - UC03 — Visualização Consolidada
-- Busca transações e calcula totais e breakdown por categoria
+- Chama o DashboardRepository para obter os dados processados pelo backend
 
 pseudocódigo:
   classe GetDashboardSummaryUseCase {
-    final TransactionRepository transactionRepository
-    final CategoryRepository categoryRepository
+    final DashboardRepository repository
 
-    Future<Either<Failure, DashboardSummary>> call() async {
-      // Buscar transações e categorias em paralelo
-      transacoesResultado = await transactionRepository.getAll()
-      categoriasResultado = await categoryRepository.getAll()
+    construtor GetDashboardSummaryUseCase(this.repository)
 
-      retornar transacoesResultado.flatMap((transacoes) {
-        retornar categoriasResultado.map((categorias) {
-          totalIncome = transacoes.where(t => t.type == income).fold(0, (sum, t) => sum + t.amount)
-          totalExpense = transacoes.where(t => t.type == expense).fold(0, (sum, t) => sum + t.amount)
-
-          // Agrupar por categoria
-          categoryTotals = Map<String, double>()
-          para cada transacao em transacoes {
-            categoryTotals[transacao.categoryId] = (categoryTotals[transacao.categoryId] ?? 0) + transacao.amount
-          }
-
-          breakdown = categorias.where(c => categoryTotals.containsKey(c.id)).map((c) =>
-            CategorySummary(categoryId: c.id, categoryName: c.name, categoryColor: c.color, total: categoryTotals[c.id]!)
-          ).toList()
-
-          retornar DashboardSummary(
-            balance: totalIncome - totalExpense,
-            totalIncome: totalIncome,
-            totalExpense: totalExpense,
-            categoryBreakdown: breakdown,
-          )
-        })
-      })
+    Future<Either<Failure, DashboardSummary>> call({String? startDate, String? endDate}) async {
+      retornar repository.getSummary(startDate: startDate, endDate: endDate)
     }
   }
 ```
 
-### 5.2 Presentation
+### 5.2 Data
+
+```
+lib/features/dashboard/data/models/dashboard_summary_model.dart
+- ação: criar
+- Mapeamento JSON do response de /api/reports
+
+lib/features/dashboard/data/datasources/dashboard_remote_datasource.dart
+- ação: criar
+- Realiza requisição HTTP GET /api/reports via Dio
+
+lib/features/dashboard/data/repositories/dashboard_repository_impl.dart
+- ação: criar
+- Implementação concreta do repositório gerenciando exceções HTTP (DioException)
+```
+
+### 5.3 Presentation
 
 ```
 lib/features/dashboard/presentation/providers/dashboard_providers.dart
 - ação: criar
 
 pseudocódigo:
-  final getDashboardSummaryUseCaseProvider = Provider((ref) => GetDashboardSummaryUseCase(
-    transactionRepository: ref.read(transactionRepositoryProvider),
-    categoryRepository: ref.read(categoryRepositoryProvider),
-  ))
+  final dashboardRemoteDataSourceProvider = Provider((ref) => DashboardRemoteDataSourceImpl(ref.read(dioProvider)))
+  final dashboardRepositoryProvider = Provider((ref) => DashboardRepositoryImpl(ref.read(dashboardRemoteDataSourceProvider)))
+  final getDashboardSummaryUseCaseProvider = Provider((ref) => GetDashboardSummaryUseCase(ref.read(dashboardRepositoryProvider)))
 
   final dashboardSummaryProvider = FutureProvider.autoDispose<DashboardSummary>((ref) async {
     useCase = ref.read(getDashboardSummaryUseCaseProvider)

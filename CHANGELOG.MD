@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0] - 2026-06-10
+
+### Adicionado
+- **Auto-Login**: Implementada a verificação automática de token ao iniciar o aplicativo. O `AuthNotifier` tenta recuperar o perfil do usuário logado através da rota `/auth/user`. Se o token for válido, redireciona o usuário para o `DashboardPage`; caso contrário, redireciona para a `LoginPage`.
+- **Feature 5 (Dashboard)**:
+  - Criada a entidade `DashboardSummary` e a interface `DashboardRepository` no domínio.
+  - Criado o caso de uso `GetDashboardSummaryUseCase`.
+  - Criada a fonte de dados remota `DashboardRemoteDataSourceImpl` e o repositório `DashboardRepositoryImpl` para consumir a rota `/api/reports` diretamente do backend.
+  - Criados os providers do Dashboard com Riverpod.
+  - Implementada a interface da `DashboardPage` mostrando o saldo consolidado, receitas, despesas e distribuição por categorias via gráfico de pizza utilizando o pacote `fl_chart`.
+- **Testes Automatizados (TDD)**:
+  - Adicionados testes de unidade para `GetDashboardSummaryUseCase`, `DashboardSummaryModel`, `DashboardRemoteDataSourceImpl` e `DashboardRepositoryImpl`.
+  - Adicionados testes de widget para a interface da `DashboardPage` cobrindo estados de carregamento, sucesso e falha.
+  - Adicionados testes de unidade para `AuthNotifier.checkAuthStatus()`.
+
+### Alterado
+- **Especificações Técnicas (`docs/specs.md`)**: Atualizada a seção 5 ("Feature: Dashboard") para formalizar a decisão arquitetural de usar o `DashboardRepository` e a rota `/api/reports` diretamente do backend, ao invés da agregação de dados local.
+- **Configuração de Dependências (`pubspec.yaml`)**: Adicionada a dependência oficial `fl_chart` para renderização de gráficos.
+- **Ponto de Entrada (`lib/main.dart`)**: Atualizado para carregar a sessão automática do usuário e realizar o roteamento declarativo inicial.
+
 ## [1.1.0] - 2026-06-10
 
 ### Alterado

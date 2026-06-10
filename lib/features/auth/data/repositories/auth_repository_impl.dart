@@ -78,6 +78,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, User>> getProfile() async {
+    final token = local.getToken();
+    if (token == null || token.isEmpty) {
+      return Left(CacheFailure('Token não encontrado'));
+    }
     try {
       final userModel = await remote.getProfile();
       return Right(userModel);

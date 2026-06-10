@@ -9,4 +9,5 @@ class ApiPaths {
   static const transactions = '/transactions';
   static const categories = '/categories';
   static const uploadDoc = '/documents/upload';
+  static const reports = '/reports';
 }
