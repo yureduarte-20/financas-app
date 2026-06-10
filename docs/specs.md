@@ -79,11 +79,13 @@ lib/core/constants/api_paths.dart
 
 pseudocódigo:
   classe ApiPaths {
-    estático const base       = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8000/api/v1')
-    estático const login      = '/auth/login'
+    estático const base       = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8000/api')
     estático const register   = '/auth/register'
+    estático const login      = '/auth/login'
+    estático const verifyCode = '/auth/verify-code'
+    estático const resendCode = '/auth/resend-code'
+    estático const me         = '/auth/user'
     estático const logout     = '/auth/logout'
-    estático const me         = '/auth/me'
     estático const transactions = '/transactions'
     estático const categories = '/categories'
     estático const uploadDoc  = '/documents/upload'
@@ -189,12 +191,14 @@ pseudocódigo:
 ```
 lib/features/auth/domain/repositories/auth_repository.dart
 - ação: criar
-- Contrato (interface abstrata) do repositório de autenticação
+- Contrato (interface abstrata) do repositório de autenticação com fluxo 2FA
 
 pseudocódigo:
   abstrata classe AuthRepository {
-    Future<Either<Failure, User>> login({required String email, required String password})
-    Future<Either<Failure, User>> register({required String name, required String email, required String password})
+    Future<Either<Failure, void>> login({required String email, required String password})
+    Future<Either<Failure, void>> register({required String name, required String email, required String password})
+    Future<Either<Failure, User>> verifyCode({required String email, required String code, required String deviceName})
+    Future<Either<Failure, void>> resendCode({required String email, required String type})
     Future<Either<Failure, void>> logout()
     Future<Either<Failure, User>> getProfile()
   }
@@ -203,7 +207,7 @@ pseudocódigo:
 ```
 lib/features/auth/domain/usecases/login_usecase.dart
 - ação: criar
-- Executa login e retorna User em caso de sucesso
+- Executa login (fase 1) solicitando envio do código por e-mail
 
 pseudocódigo:
   classe LoginUseCase {
@@ -211,7 +215,7 @@ pseudocódigo:
 
     construtor LoginUseCase(this.repository)
 
-    Future<Either<Failure, User>> call({required String email, required String password}) {
+    Future<Either<Failure, void>> call({required String email, required String password}) {
       // Validações de entrada
       se email está vazio retornar Left(ValidationFailure('E-mail obrigatório'))
       se password.length < 6 retornar Left(ValidationFailure('Senha mínima 6 caracteres'))
@@ -224,7 +228,7 @@ pseudocódigo:
 ```
 lib/features/auth/domain/usecases/register_usecase.dart
 - ação: criar
-- Executa autocadastro (UC01) e retorna User
+- Executa autocadastro (UC01) solicitando envio do código por e-mail
 
 pseudocódigo:
   classe RegisterUseCase {
@@ -232,12 +236,53 @@ pseudocódigo:
 
     construtor RegisterUseCase(this.repository)
 
-    Future<Either<Failure, User>> call({required String name, required String email, required String password}) {
+    Future<Either<Failure, void>> call({required String name, required String email, required String password}) {
       se name está vazio retornar Left(ValidationFailure('Nome obrigatório'))
       se email não corresponde a regex retornar Left(ValidationFailure('E-mail inválido'))
       se password.length < 6 retornar Left(ValidationFailure('Senha mínima 6 caracteres'))
 
       retornar repository.register(name: name, email: email, password: password)
+    }
+  }
+```
+
+```
+lib/features/auth/domain/usecases/verify_code_usecase.dart
+- ação: criar
+- Executa confirmação do código 2FA (fase 2) retornando o usuário logado
+
+pseudocódigo:
+  classe VerifyCodeUseCase {
+    final AuthRepository repository
+
+    construtor VerifyCodeUseCase(this.repository)
+
+    Future<Either<Failure, User>> call({required String email, required String code, required String deviceName}) {
+      se email está vazio retornar Left(ValidationFailure('E-mail obrigatório'))
+      se code.length != 6 retornar Left(ValidationFailure('Código deve ter 6 dígitos'))
+      se deviceName está vazio retornar Left(ValidationFailure('Nome do dispositivo obrigatório'))
+
+      retornar repository.verifyCode(email: email, code: code, deviceName: deviceName)
+    }
+  }
+```
+
+```
+lib/features/auth/domain/usecases/resend_code_usecase.dart
+- ação: criar
+- Executa solicitação de reenvio de código 2FA (registro ou login)
+
+pseudocódigo:
+  classe ResendCodeUseCase {
+    final AuthRepository repository
+
+    construtor ResendCodeUseCase(this.repository)
+
+    Future<Either<Failure, void>> call({required String email, required String type}) {
+      se email está vazio retornar Left(ValidationFailure('E-mail obrigatório'))
+      se type está vazio retornar Left(ValidationFailure('Tipo obrigatório'))
+
+      retornar repository.resendCode(email: email, type: type)
     }
   }
 ```
@@ -262,22 +307,26 @@ pseudocódigo:
 ```
 lib/features/auth/data/models/user_model.dart
 - ação: criar
-- Modelo que estende User com serialização JSON
+- Modelo que estende User com serialização JSON e suporte ao token Sanctum
 
 pseudocódigo:
   classe UserModel extends User {
-    UserModel({required id, required name, required email})
+    final String token
+
+    UserModel({required id, required name, required email, required this.token}) : super(id: id, name: name, email: email)
 
     fábrica UserModel.fromJson(Map<String, dynamic> json) {
+      userJson = json['user'] ?? json
       retornar UserModel(
-        id: json['id'].toString(),
-        name: json['name'],
-        email: json['email'],
+        id: userJson['id'].toString(),
+        name: userJson['name'],
+        email: userJson['email'],
+        token: json['token'] ?? '',
       )
     }
 
     Map<String, dynamic> toJson() {
-      retornar {'id': id, 'name': name, 'email': email}
+      retornar {'id': id, 'name': name, 'email': email, 'token': token}
     }
   }
 ```
@@ -285,12 +334,14 @@ pseudocódigo:
 ```
 lib/features/auth/data/datasources/auth_remote_datasource.dart
 - ação: criar
-- Comunicação HTTP com endpoints /api/auth/*
+- Comunicação HTTP com endpoints /api/auth/* adaptada para fluxo 2FA
 
 pseudocódigo:
   abstrata classe AuthRemoteDataSource {
-    Future<UserModel> login(String email, String password)
-    Future<UserModel> register(String name, String email, String password)
+    Future<void> login(String email, String password)
+    Future<void> register(String name, String email, String password)
+    Future<UserModel> verifyCode(String email, String code, String deviceName)
+    Future<void> resendCode(String email, String type)
     Future<void> logout()
     Future<UserModel> getProfile()
   }
@@ -300,14 +351,33 @@ pseudocódigo:
 
     construtor AuthRemoteDataSourceImpl(this.dio)
 
-    Future<UserModel> login(email, password) async {
-      response = await dio.post(ApiPaths.login, data: {'email': email, 'password': password})
-      retornar UserModel.fromJson(response.data['data'])
+    Future<void> login(email, password) async {
+      await dio.post(ApiPaths.login, data: {'email': email, 'password': password})
     }
 
-    Future<UserModel> register(name, email, password) async {
-      response = await dio.post(ApiPaths.register, data: {'name': name, 'email': email, 'password': password})
-      retornar UserModel.fromJson(response.data['data'])
+    Future<void> register(name, email, password) async {
+      await dio.post(ApiPaths.register, data: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'password_confirmation': password
+      })
+    }
+
+    Future<UserModel> verifyCode(email, code, deviceName) async {
+      response = await dio.post(ApiPaths.verifyCode, data: {
+        'email': email,
+        'code': code,
+        'device_name': deviceName
+      })
+      retornar UserModel.fromJson(response.data)
+    }
+
+    Future<void> resendCode(email, type) async {
+      await dio.post(ApiPaths.resendCode, data: {
+        'email': email,
+        'type': type
+      })
     }
 
     Future<void> logout() async {
@@ -316,7 +386,7 @@ pseudocódigo:
 
     Future<UserModel> getProfile() async {
       response = await dio.get(ApiPaths.me)
-      retornar UserModel.fromJson(response.data['data'])
+      retornar UserModel.fromJson(response.data)
     }
   }
 ```
@@ -347,28 +417,45 @@ pseudocódigo:
 ```
 lib/features/auth/data/repositories/auth_repository_impl.dart
 - ação: criar
-- Implementa AuthRepository, delega a RemoteDataSource, trata exceções
+- Implementa AuthRepository, delega a RemoteDataSource, trata exceções e gerencia token local
 
 pseudocódigo:
   classe AuthRepositoryImpl implementa AuthRepository {
     final AuthRemoteDataSource remote
     final AuthLocalDataSource local
 
-    Future<Either<Failure, User>> login(email, password) async {
+    Future<Either<Failure, void>> login(email, password) async {
       tentar {
-        userModel = await remote.login(email, password)
-        await local.saveToken(userModel.token) // assume que API retorna token junto
+        await remote.login(email, password)
+        retornar Right(null)
+      } em DioException capturar (e) {
+        retornar Left(ServerFailure(e.message))
+      }
+    }
+
+    Future<Either<Failure, void>> register(name, email, password) async {
+      tentar {
+        await remote.register(name, email, password)
+        retornar Right(null)
+      } em DioException capturar (e) {
+        retornar Left(ServerFailure(e.message))
+      }
+    }
+
+    Future<Either<Failure, User>> verifyCode(email, code, deviceName) async {
+      tentar {
+        userModel = await remote.verifyCode(email, code, deviceName)
+        await local.saveToken(userModel.token)
         retornar Right(userModel)
       } em DioException capturar (e) {
         retornar Left(ServerFailure(e.message))
       }
     }
 
-    Future<Either<Failure, User>> register(name, email, password) async {
+    Future<Either<Failure, void>> resendCode(email, type) async {
       tentar {
-        userModel = await remote.register(name, email, password)
-        await local.saveToken(userModel.token)
-        retornar Right(userModel)
+        await remote.resendCode(email, type)
+        retornar Right(null)
       } em DioException capturar (e) {
         retornar Left(ServerFailure(e.message))
       }
@@ -400,30 +487,48 @@ pseudocódigo:
 ```
 lib/features/auth/presentation/providers/auth_provider.dart
 - ação: criar
-- StateNotifier que gerencia estado de autenticação (loading, authenticated, unauthenticated, error)
+- StateNotifier que gerencia estado de autenticação (loading, codeSent, authenticated, unauthenticated, error)
 
 pseudocódigo:
-  enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
+  enum AuthStatus { initial, loading, codeSent, authenticated, unauthenticated, error }
 
   classe AuthState {
     final AuthStatus status
     final User? user
+    final String? email
+    final String? verificationType // 'registration' ou 'api_login'
     final String? errorMessage
 
-    construtor AuthState({this.status = AuthStatus.initial, this.user, this.errorMessage})
+    construtor AuthState({
+      this.status = AuthStatus.initial,
+      this.user,
+      this.email,
+      this.verificationType,
+      this.errorMessage,
+    })
   }
 
   classe AuthNotifier extends StateNotifier<AuthState> {
     final LoginUseCase loginUseCase
     final RegisterUseCase registerUseCase
+    final VerifyCodeUseCase verifyCodeUseCase
+    final ResendCodeUseCase resendCodeUseCase
     final LogoutUseCase logoutUseCase
+
+    construtor AuthNotifier({
+      required this.loginUseCase,
+      required this.registerUseCase,
+      required this.verifyCodeUseCase,
+      required this.resendCodeUseCase,
+      required this.logoutUseCase,
+    })
 
     Future<void> login(email, password) async {
       state = AuthState(status: AuthStatus.loading)
       resultado = await loginUseCase(email: email, password: password)
       resultado.fold(
         (failure) => state = AuthState(status: AuthStatus.error, errorMessage: failure.message),
-        (user) => state = AuthState(status: AuthStatus.authenticated, user: user),
+        (_) => state = AuthState(status: AuthStatus.codeSent, email: email, verificationType: 'api_login'),
       )
     }
 
@@ -432,8 +537,32 @@ pseudocódigo:
       resultado = await registerUseCase(name: name, email: email, password: password)
       resultado.fold(
         (failure) => state = AuthState(status: AuthStatus.error, errorMessage: failure.message),
+        (_) => state = AuthState(status: AuthStatus.codeSent, email: email, verificationType: 'registration'),
+      )
+    }
+
+    Future<void> verifyCode(code, deviceName) async {
+      se state.email == nulo {
+        state = AuthState(status: AuthStatus.error, errorMessage: 'E-mail não encontrado para verificação')
+        retornar
+      }
+      emailSalvo = state.email!
+      typeSalvo = state.verificationType
+      state = AuthState(status: AuthStatus.loading, email: emailSalvo, verificationType: typeSalvo)
+      resultado = await verifyCodeUseCase(email: emailSalvo, code: code, deviceName: deviceName)
+      resultado.fold(
+        (failure) => state = AuthState(status: AuthStatus.error, errorMessage: failure.message, email: emailSalvo, verificationType: typeSalvo),
         (user) => state = AuthState(status: AuthStatus.authenticated, user: user),
       )
+    }
+
+    Future<void> resendCode() async {
+      se state.email == nulo retornar
+      await resendCodeUseCase(email: state.email!, type: state.verificationType ?? 'api_login')
+    }
+
+    Future<void> cancelVerification() async {
+      state = AuthState(status: AuthStatus.unauthenticated)
     }
 
     Future<void> logout() async {
@@ -461,11 +590,15 @@ pseudocódigo:
 
   final loginUseCaseProvider = Provider((ref) => LoginUseCase(ref.read(authRepositoryProvider)))
   final registerUseCaseProvider = Provider((ref) => RegisterUseCase(ref.read(authRepositoryProvider)))
+  final verifyCodeUseCaseProvider = Provider((ref) => VerifyCodeUseCase(ref.read(authRepositoryProvider)))
+  final resendCodeUseCaseProvider = Provider((ref) => ResendCodeUseCase(ref.read(authRepositoryProvider)))
   final logoutUseCaseProvider = Provider((ref) => LogoutUseCase(ref.read(authRepositoryProvider)))
 
   final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) => AuthNotifier(
     loginUseCase: ref.read(loginUseCaseProvider),
     registerUseCase: ref.read(registerUseCaseProvider),
+    verifyCodeUseCase: ref.read(verifyCodeUseCaseProvider),
+    resendCodeUseCase: ref.read(resendCodeUseCaseProvider),
     logoutUseCase: ref.read(logoutUseCaseProvider),
   ))
 ```
@@ -544,9 +677,65 @@ pseudocódigo:
                     )
                   }
                 },
-                child: Text('Cadastrar'),
+                child: authState.status == AuthStatus.loading ? CircularProgressIndicator() : Text('Cadastrar'),
               ),
             ],
+          ),
+        ),
+      )
+    }
+  }
+```
+
+```
+lib/features/auth/presentation/pages/verification_page.dart
+- ação: criar
+- Tela de verificação de código 2FA de 6 dígitos enviado por e-mail
+- Permite confirmar o código ou solicitar reenvio
+
+pseudocódigo:
+  classe VerificationPage extends ConsumerWidget {
+    campo codeController = TextEditingController()
+    campo formKey = GlobalKey<FormState>()
+
+    Widget build(context, ref) {
+      authState = ref.watch(authNotifierProvider)
+
+      retornar Scaffold(
+        appBar: AppBar(title: Text('Verificação 2FA')),
+        body: Form(
+          key: formKey,
+          child: Padding(
+            padding: EdgeInsets.all(DimensionTokens.paddingMedium),
+            child: Column(
+              children: [
+                Text('Um código de verificação foi enviado para ${authState.email ?? ""}'),
+                TextFormField(
+                  controller: codeController,
+                  keyboardType: TextInputType.number,
+                  validator: (v) => v!.length != 6 ? 'O código deve ter 6 dígitos' : null,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    se formKey.currentState.validate() {
+                      ref.read(authNotifierProvider.notifier).verifyCode(
+                        codeController.text,
+                        'Dispositivo Mobile',
+                      )
+                    }
+                  },
+                  child: authState.status == AuthStatus.loading ? CircularProgressIndicator() : Text('Verificar Código'),
+                ),
+                TextButton(
+                  onPressed: () => ref.read(authNotifierProvider.notifier).resendCode(),
+                  child: Text('Reenviar Código'),
+                ),
+                TextButton(
+                  onPressed: () => ref.read(authNotifierProvider.notifier).cancelVerification(),
+                  child: Text('Voltar para o Login'),
+                ),
+              ],
+            ),
           ),
         ),
       )
@@ -1266,7 +1455,7 @@ pseudocódigo:
 lib/main.dart
 - ação: criar
 - Inicializa WidgetsFlutterBinding, EnvConfig, SharedPreferences
-- Define MaterialApp com tema, rotas e ConsumerWidget raiz que decide Authenticated vs Unauthenticated
+- Define MaterialApp com tema, rotas e ConsumerWidget raiz que decide Authenticated vs Unauthenticated vs CodeSent
 
 pseudocódigo:
   Future<void> main() async {
@@ -1286,7 +1475,9 @@ pseudocódigo:
         themeMode: ThemeMode.system,
         home: authState.status == AuthStatus.authenticated
           ? DashboardPage()
-          : LoginPage(),
+          : authState.status == AuthStatus.codeSent
+            ? VerificationPage()
+            : LoginPage(),
       )
     }
   }
