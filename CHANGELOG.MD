@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0] - 2026-06-15
+
+### Adicionado
+- **Feature 3 (Categorias)**:
+  - Criadas entidades de domínio, repositórios e casos de uso (Get, Create, Update, Delete) com validações.
+  - Implementado modelo de persistência com fallback padrão de ícone e cores para evitar nulidade na desserialização de JSON.
+  - Criadas as telas de listagem, criação e edição de categorias com paleta de cores e seleção de ícones Material.
+- **Feature 4 (Transações)**:
+  - Criadas entidades de domínio, repositórios e casos de uso com validações de negócio (valor > 0, título obrigatório, categoria obrigatória).
+  - Desenvolvido o `TransactionModel` compatibilizando as chaves do contrato da API com o modelo interno.
+  - Criadas telas de listagem (com swipe-to-delete e pull-to-refresh), criação e edição de transações com seleção de data (DatePicker) e seleção dinâmica de categorias via dropdown.
+  - Desenvolvido o componente visual `TransactionCardWidget`.
+- **Navegação & Interface**:
+  - Implementada a barra lateral (Side Drawer) no `DashboardPage` permitindo livre trânsito entre o Dashboard, a página de Transações e a página de Categorias.
+- **Testes Automatizados (TDD)**:
+  - Desenvolvidos testes unitários para os casos de uso, modelos de dados e implementações de repositório para ambas as features, garantindo cobertura total de cenários e tipagem estática.
+
 ## [1.2.0] - 2026-06-10
 
 ### Adicionado

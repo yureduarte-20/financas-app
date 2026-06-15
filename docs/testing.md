@@ -39,7 +39,14 @@ A camada de domínio é o coração da regra de negócio e **deve ter 100% de co
   - `Deve retornar ValidationFailure quando nenhuma categoria for selecionada.`
   - `Deve criar a entidade Transaction e chamar repository.create() com sucesso.` (Prioridade Alta)
 
-### 2.3 Casos de Uso Críticos — Dashboard
+### 2.3 Casos de Uso Críticos — Categorias (Categories)
+**Classe Alvo:** `CreateCategoryUseCase` / `UpdateCategoryUseCase`
+- **Mocks Necessários:** `@GenerateMocks([CategoryRepository])`
+- **Cenários a Testar:**
+  - `Deve retornar ValidationFailure se o nome da categoria estiver vazio.` (Prioridade Crítica)
+  - `Deve chamar o repository.create() e retornar a Category em caso de sucesso.` (Prioridade Alta)
+
+### 2.4 Casos de Uso Críticos — Dashboard
 **Classe Alvo:** `GetDashboardSummaryUseCase`
 - **Mocks Necessários:** `@GenerateMocks([TransactionRepository, CategoryRepository])`
 - **Cenários a Testar:**

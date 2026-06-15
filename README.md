@@ -8,6 +8,9 @@ Aplicativo Flutter para controle financeiro pessoal — gerencie receitas, despe
 
 - **Feature 1 (Core)**: Base arquitetural (Clean Architecture), gerenciamento de dependências com Riverpod, design system padronizado e cliente HTTP (Dio) estruturado com interceptadores.
 - **Feature 2 (Auth)**: Fluxo completo de autenticação integrado ao Sanctum com suporte a Autenticação de Dois Fatores (2FA). Validações isoladas no domínio, cache de sessão em `SharedPreferences` e testes unitários/widget sob TDD.
+- **Feature 3 (Categorias)**: CRUD completo de categorias personalizadas com ícones Material e paleta de cores.
+- **Feature 4 (Transações)**: CRUD completo de transações (receitas e despesas), com seleção de data, descrição opcional, exclusão via swipe-to-delete e listagem dinâmica.
+- **Feature 5 (Dashboard)**: Visualização consolidada de saldos, receitas, despesas e distribuição de despesas por categoria através de um gráfico de pizza interativo (`fl_chart`).
 
 ## Executando Localmente
 

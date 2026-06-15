@@ -930,6 +930,16 @@ pseudocódigo:
   }
 ```
 
+```
+lib/features/categories/presentation/pages/create_category_page.dart
+- ação: criar
+- Formulário para cadastrar categoria com campos de Nome, seleção de ícones Material e paleta de cores.
+
+lib/features/categories/presentation/pages/edit_category_page.dart
+- ação: criar
+- Formulário para editar categoria existente com campos pré-carregados, seleção de ícones Material e paleta de cores.
+```
+
 ---
 
 ## 4. Feature: Transactions
@@ -1286,6 +1296,12 @@ pseudocódigo:
       )
     }
   }
+```
+
+```
+lib/features/transactions/presentation/pages/edit_transaction_page.dart
+- ação: criar
+- Formulário para editar transação existente com campos pré-carregados de tipo, título, valor, categoria, data e descrição.
 ```
 
 ---

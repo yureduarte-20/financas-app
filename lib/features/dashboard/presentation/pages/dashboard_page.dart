@@ -5,6 +5,8 @@ import '../../../../core/constants/color_tokens.dart';
 import '../../../../core/constants/dimension_tokens.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../categories/presentation/pages/categories_page.dart';
+import '../../../transactions/presentation/pages/transactions_page.dart';
 import '../providers/dashboard_providers.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -27,6 +29,63 @@ class DashboardPage extends ConsumerWidget {
             onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(
+                color: ColorTokens.primary,
+              ),
+              accountName: Text(
+                authState.user?.name ?? '',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              accountEmail: Text(authState.user?.email ?? ''),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, color: ColorTokens.primary, size: 40),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dashboard, color: ColorTokens.primary),
+              title: const Text('Dashboard'),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long, color: ColorTokens.primary),
+              title: const Text('Transações'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const TransactionsPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.category, color: ColorTokens.primary),
+              title: const Text('Categorias'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CategoriesPage()),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: ColorTokens.error),
+              title: const Text('Sair'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ref.read(authNotifierProvider.notifier).logout();
+              },
+            ),
+          ],
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(dashboardSummaryProvider.future),

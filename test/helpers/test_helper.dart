@@ -11,6 +11,10 @@ import 'package:financas_app/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:financas_app/features/auth/domain/usecases/get_profile_usecase.dart';
 import 'package:financas_app/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:financas_app/features/dashboard/data/datasources/dashboard_remote_datasource.dart';
+import 'package:financas_app/features/categories/domain/repositories/category_repository.dart';
+import 'package:financas_app/features/categories/data/datasources/category_remote_datasource.dart';
+import 'package:financas_app/features/transactions/domain/repositories/transaction_repository.dart';
+import 'package:financas_app/features/transactions/data/datasources/transaction_remote_datasource.dart';
 
 @GenerateMocks([
   AuthRepository,
@@ -24,6 +28,10 @@ import 'package:financas_app/features/dashboard/data/datasources/dashboard_remot
   GetProfileUseCase,
   DashboardRepository,
   DashboardRemoteDataSource,
+  CategoryRepository,
+  CategoryRemoteDataSource,
+  TransactionRepository,
+  TransactionRemoteDataSource,
   Dio,
 ])
 void main() {}
