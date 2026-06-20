@@ -1,75 +1,74 @@
-# Documento de Visão Preliminar e Casos de Uso: Sistema de Ordens de Serviços Mobile
+
+## 1. Descrição Preliminar do Sistema
+
+O **FinançasPessoais Mobile** é um aplicativo de controle financeiro pessoal voltado para o usuário final (Cliente). Ele funciona de forma desacoplada de um servidor backend (Laravel 12), consumindo uma API REST via cliente HTTP avançado (Dio) e gerenciando a segurança por meio de tokens JWT/Sanctum com autenticação em dois fatores (2FA) via e-mail.
+
+### Características Principais:
+
+* **Arquitetura modular:** Organizado em padrão *Feature-First* (funcionalidades isoladas) divididas em três camadas (Apresentação, Domínio e Dados) para garantir alta testabilidade e independência de frameworks.
+* **Interface Reativa:** Suporta modos claro e escuro (*Light/Dark Mode*), guiados por Design Tokens de espaçamento e cores, oferecendo feedback visual em tempo real (como *pull-to-refresh* e remoção por gesto *swipe*).
+* **Inteligência e Análise:** Além de gráficos de pizza reativos para distribuição de despesas por categoria, o ecossistema prevê integração com inteligência artificial para leitura e processamento de recibos físicos.
 
 ---
 
-## 1. Visão Geral do Produto
+## 2. Detalhamento dos Casos de Uso
 
-O **Sistema de Ordens de Serviços Mobile** é uma solução de software voltada para prestadores de serviços e técnicos que necessitam gerenciar seus atendimentos de forma ágil, integrada e em tempo real. O aplicativo visa substituir processos manuais ou descentralizados por um fluxo de trabalho estruturado, permitindo o registro, controle de status e análise visual das ordens de serviço (OS) diretamente de um dispositivo móvel.
+Abaixo estão mapeados os fluxos de negócio identificados nos documentos técnicos, divididos por suas respectivas funcionalidades (*features*):
 
-### 1.1 Declaração do Problema
+### 🔑 Funcionalidade: Autenticação (Auth)
 
-Profissionais autônomos e equipes técnicas frequentemente enfrentam dificuldades para rastrear o andamento de seus serviços, associar orçamentos a clientes de forma organizada e extrair métricas básicas de produtividade diária ou mensal.
+#### UC01 – Autocadastro de Cliente
 
-### 1.2 Posição do Produto
+* **Atores:** Cliente (Usuário Final).
+* **Descrição:** Permite que um novo usuário crie sua conta diretamente pelo aplicativo mobile.
+* **Fluxo Principal:** O usuário insere Nome, E-mail, CPF e Senha. O sistema valida os campos (senha mínima de 6 caracteres e e-mail via regex), envia os dados ao backend Laravel e dispara um código de verificação para o e-mail do usuário, direcionando-o para a tela de 2FA.
 
-O aplicativo mobile atua como o terminal do prestador em campo, operando sob uma arquitetura desacoplada e reativa (Clean Architecture + Riverpod). Ele consome serviços de uma API REST de forma segura por meio de autenticação de dois fatores (2FA) e interceptores de segurança.
+#### UC01.1 – Autenticação com Segundo Fator (Fluxo de Login / Confirmação 2FA)
+
+* **Atores:** Cliente.
+* **Descrição:** Realiza o login em duas etapas para garantir o acesso seguro à conta financeira.
+* **Fase 1 (Solicitação):** O usuário insere e-mail e senha na `LoginPage`. Se válidos, o estado muda para `codeSent` e ele é levado à tela de verificação.
+* **Fase 2 (Verificação):** Na `VerificationPage`, o usuário digita o código de 6 dígitos recebido por e-mail. O sistema valida o formato, envia ao servidor, armazena o token JWT localmente via `SharedPreferences` e concede acesso ao Dashboard.
+* **Fluxos Alternativos:** O usuário pode solicitar o reenvio do código ou cancelar a verificação para retornar à tela de login.
 
 ---
 
-## 2. Perfis de Usuários
+### 💵 Funcionalidade: Transações (Transactions)
 
-* **Usuário (Prestador de Serviço / Técnico):** O profissional final que executa as ordens de serviço. Ele é responsável por realizar seu próprio autocadastro no aplicativo, abrir novos atendimentos, gerenciar os dados dos clientes atendidos, atualizar os status das OSs e acompanhar seus indicadores através do dashboard.
+#### UC02 – Lançamento de Transação Manual
+
+* **Atores:** Cliente.
+* **Descrição:** Permite incluir manualmente uma nova movimentação financeira (Receita ou Despesa) para manter o saldo atualizado.
+* **Fluxo Principal:** O usuário preenche o formulário informando: Tipo (Receita/Despesa via botão segmentado), Título, Valor (maior que zero), Categoria (selecionada via *dropdown*) e Data (através de um *DatePicker*). Ao salvar, a lista de transações é invalidada para forçar a atualização dos dados.
+
+#### UC02.1 – Gerenciamento e Exclusão de Transações
+
+* **Atores:** Cliente.
+* **Descrição:** Visualização detalhada do histórico financeiro e exclusão rápida.
+* **Fluxo Principal:** O usuário navega pela lista de transações (com suporte a *pull-to-refresh* para recarregar). Ele pode utilizar o gesto de *Swipe* (deslizar o card) para acionar a remoção de uma transação via `Dismissible`, atualizando o saldo imediatamente.
 
 ---
 
-## 3. Casos de Uso Principais
+### 📊 Funcionalidade: Dashboard e Relatórios
 
-```
-+-----------------------------------------------------------------+
-|                                                                 |
-|   +-------------------+       ( UC01: Autocadastro de Usuário ) |
-|   |                   |-------/                                 |
-|   |                   |                                         |
-|   |      Usuário      |-------( UC02: Lançamento de OS Manual ) |
-|   |     (Técnico)     |                                         |
-|   |                   |-------\                                 |
-|   +-------------------+       ( UC03: Visualização Consolidada) |
-|                                                                 |
-+-----------------------------------------------------------------+
+#### UC03 – Visualização Consolidada (Dashboard)
 
-```
-
-### UC01 – Autocadastro de Usuário
-
-* **Atores:** Usuário (Técnico).
-* **Descrição:** Permite que um novo profissional crie suas credenciais de acesso para utilizar o sistema.
-* **Fluxo Principal:**
-1. O usuário acessa a tela de cadastro e informa Nome, E-mail, CPF/CNPJ e Senha.
-2. O sistema valida os campos localmente com regras estritas (ex: senha de no mínimo 6 caracteres).
-3. O sistema dispara uma solicitação para a API e envia um código de segurança de 6 dígitos para o e-mail informado.
-4. O aplicativo redireciona o usuário para a tela de verificação (2FA).
-5. O usuário insere o código de 6 dígitos recebido e o dispositivo é autenticado, liberando o token JWT para as requisições subsequentes.
+* **Atores:** Cliente.
+* **Descrição:** Tela inicial que oferece um resumo financeiro integrado e visual sobre a saúde financeira do usuário.
+* **Fluxo Principal:** O aplicativo consome o endpoint `/api/reports` para obter o `DashboardSummary`. A tela renderiza:
+1. O saldo atual calculado de forma exata ($\text{Receitas} - \text{Despesas}$).
+2. Blocos informativos com os totais isolados de receitas e despesas.
+3. Um gráfico de pizza (`fl_chart`) demonstrando a distribuição percentual dos gastos agrupados por categoria.
 
 
 
-### UC02 – Lançamento de Ordem de Serviço Manual
+---
 
-* **Atores:** Usuário (Técnico).
-* **Descrição:** Permite a abertura e o registro formal de uma nova prestação de serviço.
-* **Fluxo Principal:**
-1. O usuário aciona a opção de adicionar nova OS a partir da listagem ou do dashboard.
-2. O usuário preenche os dados obrigatórios: Título do serviço, valor cobrado, cliente vinculado, data agendada e uma descrição detalhada do problema ou solicitação.
-3. O sistema valida se o valor inserido é maior que zero e se os campos obrigatórios foram preenchidos.
-4. O usuário confirma a gravação; os dados são enviados para o backend via cliente HTTP (Dio) e armazenados na base sincronizada do servidor.
+### 📂 Funcionalidade: Categorias & IA (Auxiliares)
 
+#### UC04 – Gerenciamento de Categorias de Gastos
 
+* **Atores:** Cliente.
+* **Descrição:** Permite personalizar as categorias que classificam os fluxos financeiros.
+* **Fluxo Principal:** O usuário visualiza as categorias existentes com seus respectivos ícones e cores. Ele pode criar ou editar registros preenchendo o Nome, selecionando um ícone Material e escolhendo uma cor a partir de uma paleta pré-definida.
 
-### UC03 – Visualização Consolidada (Dashboard)
-
-* **Atores:** Usuário (Técnico).
-* **Descrição:** Apresenta uma visão panorâmica e reativa sobre a saúde financeira e operacional dos atendimentos do profissional.
-* **Fluxo Principal:**
-1. Ao autenticar-se ou acessar a tela inicial, o aplicativo consome o endpoint de relatórios consolidados (`/api/reports`).
-2. O sistema calcula o saldo em aberto/recebido e agrupa o volume de ordens de serviço por tipo ou status.
-3. A tela renderiza cards informativos com os valores totais e plota dinamicamente um gráfico de pizza analítico (utilizando a biblioteca `fl_chart`) com a distribuição percentual das demandas por categoria ou situação.
-4. O usuário pode realizar um gesto de *pull-to-refresh* para forçar a reatualização dos dados operacionais instantaneamente.

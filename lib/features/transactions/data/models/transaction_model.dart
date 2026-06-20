@@ -13,19 +13,23 @@ class TransactionModel extends Transaction {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     final rawType = json['type'] as String? ?? 'out';
-    final parsedType = rawType == 'income' ? TransactionType.income : TransactionType.expense;
+    final parsedType = rawType == 'income'
+        ? TransactionType.income
+        : TransactionType.expense;
 
     return TransactionModel(
       id: json['id']?.toString() ?? '',
       title: (json['name'] ?? json['title']) as String? ?? '',
-      amount: double.tryParse((json['value'] ?? json['amount'] ?? 0).toString()) ?? 0.0,
+      amount:
+          double.tryParse((json['value'] ?? json['amount'] ?? 0).toString()) ??
+          0.0,
       type: parsedType,
       categoryId: (json['category_id'] ?? json['categoryId'])?.toString() ?? '',
       date: json['expense_date'] != null
           ? DateTime.parse(json['expense_date'] as String)
           : json['date'] != null
-              ? DateTime.parse(json['date'] as String)
-              : DateTime.now(),
+          ? DateTime.parse(json['date'] as String)
+          : DateTime.now(),
       description: json['description'] as String?,
     );
   }
@@ -38,7 +42,10 @@ class TransactionModel extends Transaction {
       'amount': amount,
       'type': type == TransactionType.income ? 'income' : 'out',
       'category_id': categoryId,
-      'expense_date': date.toIso8601String().substring(0, 10), // Send YYYY-MM-DD
+      'expense_date': date.toIso8601String().substring(
+        0,
+        10,
+      ), // Send YYYY-MM-DD
       'date': date.toIso8601String(),
       'description': description,
     };
