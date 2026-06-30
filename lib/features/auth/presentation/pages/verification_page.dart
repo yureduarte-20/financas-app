@@ -57,40 +57,52 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(Icons.mark_email_read_outlined, size: 64, color: ColorTokens.primary),
-                const SizedBox(height: DimensionTokens.paddingLarge),
-                Text(
-                  'Insira o código de 6 dígitos que enviamos para o e-mail:',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: DimensionTokens.paddingSmall),
-                Text(
-                  authState.email ?? '',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: DimensionTokens.paddingLarge),
-                TextFormField(
-                  controller: _codeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Código de Verificação',
-                    border: OutlineInputBorder(),
-                    counterText: '',
-                  ),
-                  maxLength: 6,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
-                  validator: (v) => v == null || v.length != 6 ? 'O código deve ter 6 dígitos' : null,
-                ),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Icon(Icons.mark_email_read_outlined, size: 64, color: ColorTokens.primary),
+                    const SizedBox(height: DimensionTokens.paddingLarge),
+                    Text(
+                      'Insira o código de 6 dígitos que enviamos para o e-mail:',
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: DimensionTokens.paddingSmall),
+                    Text(
+                      authState.email ?? '',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: DimensionTokens.paddingLarge),
+                    TextFormField(
+                      controller: _codeController,
+                      decoration: InputDecoration(
+                        labelText: 'Código de Verificação',
+                        helperText: 'O código expira em 10 minutos',
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: ColorTokens.primary, width: 2.5),
+                          borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.5),
+                          borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
+                        ),
+                        counterText: '',
+                      ),
+                      maxLength: 6,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
+                      validator: (v) => v == null || v.length != 6 ? 'O código deve ter 6 dígitos' : null,
+                    ),
                 const SizedBox(height: DimensionTokens.paddingLarge),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -136,6 +148,8 @@ class _VerificationPageState extends ConsumerState<VerificationPage> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

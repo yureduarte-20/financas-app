@@ -19,32 +19,44 @@ class TransactionCardWidget extends StatelessWidget {
     final color = isIncome ? ColorTokens.income : ColorTokens.expense;
     final icon = isIncome ? Icons.arrow_downward : Icons.arrow_upward;
 
-    return Card(
-      elevation: 1.5,
-      margin: const EdgeInsets.only(bottom: DimensionTokens.paddingSmall),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: color.withAlpha(26), // 10% soft opacity
-          child: Icon(icon, color: color),
+    final semanticLabel = 'Transação: ${transaction.title}. '
+        'Tipo: ${isIncome ? "Receita" : "Despesa"}. '
+        'Valor: ${transaction.amount.toStringAsFixed(2)} reais. '
+        'Data: ${transaction.date.day} de ${transaction.date.month} de ${transaction.date.year}.'
+        '${transaction.description != null && transaction.description!.isNotEmpty ? " Descrição: ${transaction.description}." : ""}';
+
+    return Semantics(
+      label: semanticLabel,
+      button: onTap != null,
+      enabled: true,
+      excludeSemantics: true,
+      child: Card(
+        elevation: 1.5,
+        margin: const EdgeInsets.only(bottom: DimensionTokens.paddingSmall),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
         ),
-        title: Text(
-          transaction.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          '${transaction.date.day.toString().padLeft(2, '0')}/${transaction.date.month.toString().padLeft(2, '0')}/${transaction.date.year}',
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-        trailing: Text(
-          '${isIncome ? "+" : "-"} R\$ ${transaction.amount.toStringAsFixed(2)}',
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
+        child: ListTile(
+          onTap: onTap,
+          leading: CircleAvatar(
+            backgroundColor: color.withAlpha(26), // 10% soft opacity
+            child: Icon(icon, color: color),
+          ),
+          title: Text(
+            transaction.title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            '${transaction.date.day.toString().padLeft(2, '0')}/${transaction.date.month.toString().padLeft(2, '0')}/${transaction.date.year}',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          trailing: Text(
+            '${isIncome ? "+" : "-"} R\$ ${transaction.amount.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
           ),
         ),
       ),

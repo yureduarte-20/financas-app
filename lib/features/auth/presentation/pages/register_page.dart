@@ -50,10 +50,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         elevation: 0,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
-          child: Form(
-            key: _formKey,
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
+              child: Form(
+                key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -130,6 +133,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

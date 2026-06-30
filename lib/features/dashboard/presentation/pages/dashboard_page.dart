@@ -91,40 +91,231 @@ class DashboardPage extends ConsumerWidget {
         onRefresh: () => ref.refresh(dashboardSummaryProvider.future),
         child: summaryAsync.when(
           data: (summary) {
+            final width = MediaQuery.of(context).size.width;
+            final isWide = width >= 600;
+
+            if (isWide) {
+              return ListView(
+                padding: const EdgeInsets.all(DimensionTokens.paddingMedium),
+                children: [
+                  // Row of Summary Cards (3 elements side-by-side)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          label: 'Saldo Atual: ${summary.balance.toStringAsFixed(2)} reais',
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(DimensionTokens.paddingMedium),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'Saldo Atual',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'R\$ ${summary.balance.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: summary.balance >= 0
+                                          ? ColorTokens.income
+                                          : ColorTokens.expense,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: DimensionTokens.paddingSmall),
+                      Expanded(
+                        child: Semantics(
+                          label: 'Total de Receitas: ${summary.totalIncome.toStringAsFixed(2)} reais',
+                          child: _buildTile(
+                            'Receitas',
+                            summary.totalIncome,
+                            ColorTokens.income,
+                            Icons.trending_up,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: DimensionTokens.paddingSmall),
+                      Expanded(
+                        child: Semantics(
+                          label: 'Total de Despesas: ${summary.totalExpense.toStringAsFixed(2)} reais',
+                          child: _buildTile(
+                            'Despesas',
+                            summary.totalExpense,
+                            ColorTokens.expense,
+                            Icons.trending_down,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: DimensionTokens.paddingLarge),
+
+                  // Horizontal Layout for Graph & Legend
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(DimensionTokens.paddingMedium),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Distribuição por Categoria',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: DimensionTokens.paddingLarge),
+                          if (summary.categoryBreakdown.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DimensionTokens.paddingLarge,
+                                ),
+                                child: Text(
+                                  'Nenhuma transação registrada.',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            )
+                          else
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 4,
+                                  child: Semantics(
+                                    label: 'Gráfico de pizza de gastos por categorias',
+                                    child: SizedBox(
+                                      height: 200,
+                                      child: PieChart(
+                                        PieChartData(
+                                          sectionsSpace: 2,
+                                          centerSpaceRadius: 40,
+                                          sections: summary.categoryBreakdown.map((cs) {
+                                            return PieChartSectionData(
+                                              value: cs.total,
+                                              title: cs.categoryName,
+                                              color: Color(int.parse('0xFF${cs.categoryColor}')),
+                                              radius: 50,
+                                              titleStyle: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                                shadows: [
+                                                  Shadow(
+                                                    color: Colors.black54,
+                                                    blurRadius: 2,
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: DimensionTokens.paddingLarge),
+                                Expanded(
+                                  flex: 6,
+                                  child: Column(
+                                    children: summary.categoryBreakdown.map((cs) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 12,
+                                              height: 12,
+                                              decoration: BoxDecoration(
+                                                color: Color(int.parse('0xFF${cs.categoryColor}')),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              cs.categoryName,
+                                              style: const TextStyle(fontWeight: FontWeight.w500),
+                                            ),
+                                            const Spacer(),
+                                            Text(
+                                              'R\$ ${cs.total.toStringAsFixed(2)} (${cs.count})',
+                                              style: const TextStyle(color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            // Narrow layout (Mobile Portrait)
             return ListView(
               padding: const EdgeInsets.all(DimensionTokens.paddingMedium),
               children: [
                 // Card Saldo
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Saldo Atual',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                Semantics(
+                  label: 'Saldo Atual: ${summary.balance.toStringAsFixed(2)} reais',
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DimensionTokens.radiusMedium),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Saldo Atual',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'R\$ ${summary.balance.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: summary.balance >= 0
-                                ? ColorTokens.income
-                                : ColorTokens.expense,
+                          const SizedBox(height: 8),
+                          Text(
+                            'R\$ ${summary.balance.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: summary.balance >= 0
+                                  ? ColorTokens.income
+                                  : ColorTokens.expense,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -133,20 +324,26 @@ class DashboardPage extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildTile(
-                        'Receitas',
-                        summary.totalIncome,
-                        ColorTokens.income,
-                        Icons.trending_up,
+                      child: Semantics(
+                        label: 'Total de Receitas: ${summary.totalIncome.toStringAsFixed(2)} reais',
+                        child: _buildTile(
+                          'Receitas',
+                          summary.totalIncome,
+                          ColorTokens.income,
+                          Icons.trending_up,
+                        ),
                       ),
                     ),
                     const SizedBox(width: DimensionTokens.paddingSmall),
                     Expanded(
-                      child: _buildTile(
-                        'Despesas',
-                        summary.totalExpense,
-                        ColorTokens.expense,
-                        Icons.trending_down,
+                      child: Semantics(
+                        label: 'Total de Despesas: ${summary.totalExpense.toStringAsFixed(2)} reais',
+                        child: _buildTile(
+                          'Despesas',
+                          summary.totalExpense,
+                          ColorTokens.expense,
+                          Icons.trending_down,
+                        ),
                       ),
                     ),
                   ],
@@ -184,31 +381,34 @@ class DashboardPage extends ConsumerWidget {
                             ),
                           )
                         else ...[
-                          SizedBox(
-                            height: 200,
-                            child: PieChart(
-                              PieChartData(
-                                sectionsSpace: 2,
-                                centerSpaceRadius: 40,
-                                sections: summary.categoryBreakdown.map((cs) {
-                                  return PieChartSectionData(
-                                    value: cs.total,
-                                    title: cs.categoryName,
-                                    color: Color(int.parse('0xFF${cs.categoryColor}')),
-                                    radius: 50,
-                                    titleStyle: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black54,
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+                          Semantics(
+                            label: 'Gráfico de pizza de gastos por categorias',
+                            child: SizedBox(
+                              height: 200,
+                              child: PieChart(
+                                PieChartData(
+                                  sectionsSpace: 2,
+                                  centerSpaceRadius: 40,
+                                  sections: summary.categoryBreakdown.map((cs) {
+                                    return PieChartSectionData(
+                                      value: cs.total,
+                                      title: cs.categoryName,
+                                      color: Color(int.parse('0xFF${cs.categoryColor}')),
+                                      radius: 50,
+                                      titleStyle: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black54,
+                                            blurRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ),
                           ),

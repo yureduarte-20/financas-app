@@ -46,10 +46,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
-            child: Form(
-              key: _formKey,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(DimensionTokens.paddingLarge),
+              child: Form(
+                key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -130,6 +132,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

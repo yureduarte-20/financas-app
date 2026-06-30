@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.5.0] - 2026-06-30
+
+### Adicionado
+- **Componentes Core de Estado (`lib/core/widgets/state_widgets.dart`)**:
+  - Desenvolvido `LoadingWidget` com suporte semântico para carregamento.
+  - Desenvolvido `ErrorFallbackWidget` com suporte a retry e revalidação assíncrona de providers via Riverpod.
+  - Desenvolvido `EmptyStateWidget` com suporte a ícones temáticos e botões de chamada para ação (CTA).
+- **Testes Responsivos e Acessibilidade (`test/features/dashboard/presentation/pages/responsive_dashboard_test.dart`)**:
+  - Criados testes de layout responsivo sob resoluções ampliadas (wide screens).
+  - Criados testes de asserção semântica para validação da acessibilidade do leitor de tela.
+- **Testes de Componentes Core (`test/core/widgets/state_widgets_test.dart`)**:
+  - Criados testes para os estados Loading, Error e Empty.
+
+### Alterado
+- **Acessibilidade Semântica**:
+  - Refatorado `TransactionCardWidget` para agrupar todas as propriedades visuais em uma narração unificada e coerente para leitores de tela (`Semantics` com exclusão de filhos).
+  - Incluídas marcações semânticas de acessibilidade no Drawer e nos cards do Dashboard.
+- **Responsividade de Tela**:
+  - Refatoradas as telas `LoginPage`, `RegisterPage` e `VerificationPage` para limitar a largura máxima do formulário central a `500.0` pixels em telas largas.
+  - Refatorado o `DashboardPage` para reorganizar os resumos horizontais e o gráfico/legenda lado a lado em resoluções >= 600px wide.
+- **Estados de Tela Integrados**:
+  - Substituídos os indicadores de carregamento simples e fallbacks de erro textuais de `TransactionsPage` e `CategoriesPage` pelos novos componentes `LoadingWidget`, `ErrorFallbackWidget` e `EmptyStateWidget` com retry automático.
+- **Documentação de Sistema**:
+  - Atualizado `docs/specs.md` para incluir a seção "8. Padrões de Interface, Responsividade e Acessibilidade".
+  - Atualizado `docs/testing.md` para incluir a seção "6. Novos Cenários de Testes de Frontend e Acessibilidade".
+
 ## [1.4.0] - 2026-06-30
 
 ### Alterado

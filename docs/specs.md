@@ -1540,3 +1540,31 @@ pseudocódigo:
     CacheFailure(super.message)
   }
 ```
+
+---
+
+## 8. Padrões de Interface, Responsividade e Acessibilidade
+
+### 8.1 Padronização de Design System e Componentes Core
+Para garantir a consistência de layout e a manutenibilidade do código, todas as telas do aplicativo devem utilizar os seguintes componentes globais localizados em `lib/core/widgets/state_widgets.dart` para tratamento de estados assíncronos:
+- **`LoadingWidget`**: Exibido durante operações pendentes de API/Banco de dados. Deve possuir uma mensagem amigável opcional e a marcação semântica correspondente.
+- **`ErrorFallbackWidget`**: Exibido quando uma operação falha. Deve exibir um ícone vermelho de erro, a mensagem detalhada e disponibilizar um botão de ação "TENTAR NOVAMENTE" que revalida o provider ou reinicia o fluxo.
+- **`EmptyStateWidget`**: Exibido quando não há dados salvos. Deve conter um ícone ilustrativo central, título descritivo do estado vazio e um botão de chamada para ação (CTA) que redireciona o usuário para a tela de criação pertinente.
+
+### 8.2 Diretrizes de Responsividade
+Para que o aplicativo se adapte harmoniosamente a múltiplos tamanhos de tela (como celulares de diferentes resoluções, tablets e telas web):
+1. **Formulários de Fluxo (Login, Autocadastro, Confirmação 2FA)**:
+   - Devem conter restrição de largura máxima de `500.0` pixels lógicos no container centralizado para evitar esticamento excessivo dos campos e botões em tablets e monitores amplos.
+2. **Dashboard Adaptativo**:
+   - **Telas Estreitas (< 600px)**: Cards de resumo (Saldo, Receita e Despesa) dispostos em lista vertical de uma única coluna. Legendas do gráfico exibidas abaixo da representação visual do gráfico de pizza.
+   - **Telas Amplas (>= 600px)**: Cards de resumo dispostos lado a lado em linha horizontal (`Row` com 3 colunas). O gráfico de pizza e a legenda de categorias dispostos lado a lado.
+
+### 8.3 Diretrizes de Acessibilidade (A11y)
+1. **Anotações Semânticas**:
+   - Elementos interativos (como botões e links) que dependem de ícones sem texto adjacente visível devem ter anotações explícitas usando o widget `Semantics` com o atributo `label` correspondente em português e `button: true`.
+2. **Narração Unificada de Listas**:
+   - No card de transação (`TransactionCardWidget`), os textos de título, data e valor devem ser encapsulados por um único widget `Semantics` que unifique a informação em um texto corrido legível por softwares de leitura de tela (ex: TalkBack/VoiceOver). O parâmetro `excludeSemantics: true` deve ser utilizado nos widgets filhos para evitar repetição excessiva de elementos soltos pelo leitor de tela.
+3. **Regiões Dinâmicas (Live Regions)**:
+   - Mensagens de progresso ou conclusão de ações críticas devem ser definidas com `liveRegion: true` no widget de Semantics ou anunciadas via `SemanticsService.announce` para garantir o feedback imediato aos usuários deficientes visuais.
+
+```

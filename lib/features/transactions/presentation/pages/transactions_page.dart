@@ -6,6 +6,7 @@ import '../providers/transaction_providers.dart';
 import '../widgets/transaction_card_widget.dart';
 import 'create_transaction_page.dart';
 import 'edit_transaction_page.dart';
+import '../../../../core/widgets/state_widgets.dart';
 
 class TransactionsPage extends ConsumerWidget {
   const TransactionsPage({super.key});
@@ -25,17 +26,16 @@ class TransactionsPage extends ConsumerWidget {
         child: transactionsAsync.when(
           data: (list) {
             if (list.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 100),
-                  Center(
-                    child: Text(
-                      'Nenhuma transação encontrada.',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                  ),
-                ],
+              return EmptyStateWidget(
+                icon: Icons.receipt_long_outlined,
+                title: 'Nenhuma Transação',
+                description: 'Você ainda não registrou nenhuma transação financeira.',
+                actionLabel: 'Nova Transação',
+                onAction: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CreateTransactionPage()),
+                  );
+                },
               );
             }
             return ListView.builder(
@@ -110,12 +110,10 @@ class TransactionsPage extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Text(
-              'Erro: $e',
-              style: const TextStyle(color: ColorTokens.error),
-            ),
+          loading: () => const LoadingWidget(message: 'Carregando transações...'),
+          error: (e, _) => ErrorFallbackWidget(
+            errorMessage: e.toString(),
+            onRetry: () => ref.invalidate(transactionListProvider),
           ),
         ),
       ),

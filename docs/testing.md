@@ -137,3 +137,32 @@ Para obter a métrica de cobertura de código (Code Coverage) e certificar-se de
 flutter test --coverage
 ```
 (Um relatório em HTML pode ser gerado a partir da pasta `/coverage`).
+
+---
+
+## 6. Novos Cenários de Testes de Frontend e Acessibilidade
+
+Para atender aos novos requisitos de consistência visual, responsividade e inclusão digital, a suíte de testes deve cobrir explicitamente as seguintes situações:
+
+### 6.1 Testes de Responsividade
+- **Objetivo**: Garantir que as restrições de largura e as quebras de layout adaptativas ocorram corretamente.
+- **Cenários a Testar**:
+  - `Deve limitar a largura dos formulários de login/registro a no máximo 500px quando a largura física do dispositivo for maior (ex: tablet ou web).`
+  - `No Dashboard, deve renderizar os cards de resumo em formato vertical se a largura da tela for menor que 600px.`
+  - `No Dashboard, deve renderizar os cards lado a lado e o gráfico de pizza posicionado ao lado das legendas se a largura da tela for maior ou igual a 600px.`
+
+### 6.2 Testes de Acessibilidade (A11y)
+- **Objetivo**: Verificar a corretude semântica de elementos interativos e unificação para leitores de tela.
+- **Cenários a Testar**:
+  - `Deve conter marcação de Semantics descrevendo a transação de forma completa e contínua no TransactionCardWidget (evitando leitura fragmentada).`
+  - `Deve conter o atributo button: true e uma label descritiva em português para todas as ações interativas de exclusão, edição e criação nas páginas principais.`
+  - `Deve sinalizar liveRegion: true no indicador de carregamento para imediata leitura do leitor de tela ao abrir abas dinâmicas.`
+
+### 6.3 Testes de Renderização Condicional e Fallbacks
+- **Objetivo**: Assegurar comportamento robusto diante de variações de estado de carregamento, ausência de dados ou falhas em chamadas de API.
+- **Cenários a Testar**:
+  - `Deve exibir LoadingWidget com a mensagem apropriada ao disparar qualquer carregamento assíncrono.`
+  - `Deve renderizar ErrorFallbackWidget contendo a mensagem de erro do servidor e o botão "TENTAR NOVAMENTE".`
+  - `Ao clicar em "TENTAR NOVAMENTE", o widget de erro deve acionar a invalidação ou recarregamento automático do respectivo provider.`
+  - `Deve renderizar EmptyStateWidget com ícone descritivo e botão de ação (CTA) se a listagem de transações ou categorias estiver vazia.`
+

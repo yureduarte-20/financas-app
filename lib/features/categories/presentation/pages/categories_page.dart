@@ -6,6 +6,7 @@ import '../../domain/entities/category.dart';
 import '../providers/category_providers.dart';
 import 'create_category_page.dart';
 import 'edit_category_page.dart';
+import '../../../../core/widgets/state_widgets.dart';
 
 class CategoriesPage extends ConsumerWidget {
   const CategoriesPage({super.key});
@@ -22,14 +23,19 @@ class CategoriesPage extends ConsumerWidget {
       ),
       body: categoriesAsync.when(
         data: (list) {
-          if (list.isEmpty) {
-            return const Center(
-              child: Text(
-                'Nenhuma categoria encontrada.',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-            );
-          }
+            if (list.isEmpty) {
+              return EmptyStateWidget(
+                icon: Icons.category_outlined,
+                title: 'Nenhuma Categoria',
+                description: 'Você ainda não possui nenhuma categoria cadastrada.',
+                actionLabel: 'Nova Categoria',
+                onAction: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CreateCategoryPage()),
+                  );
+                },
+              );
+            }
           return ListView.builder(
             padding: const EdgeInsets.all(DimensionTokens.paddingMedium),
             itemCount: list.length,
@@ -81,12 +87,10 @@ class CategoriesPage extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Text(
-            'Erro: $e',
-            style: const TextStyle(color: ColorTokens.error),
-          ),
+        loading: () => const LoadingWidget(message: 'Carregando categorias...'),
+        error: (e, _) => ErrorFallbackWidget(
+          errorMessage: e.toString(),
+          onRetry: () => ref.invalidate(categoryListProvider),
         ),
       ),
       floatingActionButton: FloatingActionButton(
