@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.0] - 2026-06-30
+
+### Alterado
+- **Especificações de Negócio (`docs/description.md`)**:
+  - Consolidadas as seções de arquitetura, diretórios e convenções para remover redundâncias textuais.
+  - Removido o campo redundante e inconsistente de CPF do caso de uso `UC01 (Autocadastro)`.
+  - Adicionado requisito para validação formal de e-mail por expressões regulares (`regex`).
+- **Plano de Testes (`docs/testing.md`)**:
+  - Adicionados cenários de testes de formato regex para `LoginUseCase` e `RegisterUseCase`.
+  - Mapeados cenários de testes unitários para a classe `RegisterUseCase`.
+- **Validação de E-mail (Domínio & Apresentação)**:
+  - Implementada a validação por RegExp no `LoginUseCase` e `RegisterUseCase`.
+  - Atualizados os validadores de formulários da `LoginPage` e `RegisterPage` para conformidade com a especificação de regex.
+
+### Adicionado
+- **Testes Unitários**:
+  - Criada suíte de testes unitários em `test/features/auth/domain/usecases/register_usecase_test.dart` validando nome, senha, regex de e-mails e comportamento de sucesso.
+  - Atualizados os testes unitários do `LoginUseCase` para testar variados e-mails mal-formados.
+
 ## [1.3.0] - 2026-06-15
 
 ### Adicionado

@@ -217,7 +217,7 @@ pseudocódigo:
 
     Future<Either<Failure, void>> call({required String email, required String password}) {
       // Validações de entrada
-      se email está vazio retornar Left(ValidationFailure('E-mail obrigatório'))
+      se email está vazio ou não corresponde a regex retornar Left(ValidationFailure('E-mail inválido ou vazio'))
       se password.length < 6 retornar Left(ValidationFailure('Senha mínima 6 caracteres'))
 
       retornar repository.login(email: email, password: password)

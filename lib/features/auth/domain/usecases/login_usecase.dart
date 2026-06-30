@@ -7,8 +7,12 @@ class LoginUseCase {
 
   LoginUseCase(this.repository);
 
+  static final RegExp _emailRegExp = RegExp(
+    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+  );
+
   Future<Either<Failure, void>> call({required String email, required String password}) async {
-    if (email.isEmpty || !email.contains('@')) {
+    if (email.isEmpty || !_emailRegExp.hasMatch(email)) {
       return Left(ValidationFailure('E-mail inválido ou vazio'));
     }
     if (password.length < 6) {

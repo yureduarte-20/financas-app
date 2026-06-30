@@ -80,7 +80,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) => v == null || !v.contains('@') ? 'E-mail inválido' : null,
+                  validator: (v) {
+                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    return v == null || !emailRegex.hasMatch(v) ? 'E-mail inválido' : null;
+                  },
                 ),
                 const SizedBox(height: DimensionTokens.paddingMedium),
                 TextFormField(

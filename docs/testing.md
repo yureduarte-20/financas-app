@@ -23,13 +23,16 @@ A estrutura segue o padrão arquitetural do projeto (Clean Architecture), testan
 A camada de domínio é o coração da regra de negócio e **deve ter 100% de cobertura de testes**. Os testes aqui focam apenas nas Entidades e Casos de Uso.
 
 ### 2.1 Casos de Uso Críticos — Autenticação (Auth)
-**Classe Alvo:** `LoginUseCase` / `VerifyCodeUseCase`
+**Classe Alvo:** `LoginUseCase` / `RegisterUseCase` / `VerifyCodeUseCase`
 - **Mocks Necessários:** `@GenerateMocks([AuthRepository])`
 - **Cenários a Testar:**
-  - `Deve retornar ValidationFailure quando o email for inválido ou vazio.` (Prioridade Alta)
+  - `Deve retornar ValidationFailure quando o email for inválido (mal-formado ou não seguir o padrão regex) ou vazio.` (Prioridade Alta)
   - `Deve retornar ValidationFailure quando a senha tiver menos de 6 caracteres.`
   - `Deve chamar repository.login() e retornar void em caso de sucesso (Fluxo 2FA Fase 1).` (Prioridade Alta)
   - `Deve retornar o UserModel quando a confirmação do código 2FA (VerifyCodeUseCase) for bem-sucedida.`
+  - `Deve validar e-mail via regex e retornar ValidationFailure para formatos inválidos como 'user@', 'user@domain', '@domain.com', ou 'user@domain.' no RegisterUseCase e LoginUseCase.` (Prioridade Alta)
+  - `Deve retornar ValidationFailure se o nome estiver vazio no RegisterUseCase.` (Prioridade Alta)
+  - `Deve chamar repository.register() e retornar void em caso de sucesso no RegisterUseCase.` (Prioridade Alta)
 
 ### 2.2 Casos de Uso Críticos — Transações (Transactions)
 **Classe Alvo:** `CreateTransactionUseCase`
