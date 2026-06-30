@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased] - 2026-06-30
+
+### Segurança (Auditoria)
+- **Inspeção de Segurança Profunda (OWASP Top 10)**: Realizada auditoria de cibersegurança de profundidade PROFUNDA em todo o projeto (`/lib/`, `/android/`, `pubspec.yaml`, `.env`, `.gitignore`). Identificadas **15 vulnerabilidades**: 2 críticas, 4 altas, 5 médias e 4 baixas. Relatório completo gerado em `security_audit_report.md`.
+  - **[CRÍTICO – VUL-01]** Token JWT armazenado em `SharedPreferences` (plain text). Recomendado: migrar para `flutter_secure_storage` com `EncryptedSharedPreferences` (Android) e `Keychain` (iOS). Refs: CWE-312, CWE-922.
+  - **[CRÍTICO – VUL-02]** Arquivo `.env` empacotado como asset Flutter (`pubspec.yaml` linha 70), exposição da URL de produção no APK. Recomendado: usar `--dart-define` e remover `flutter_dotenv`. Refs: CWE-312, CWE-200.
+  - **[ALTO – VUL-03]** `LogInterceptor(requestBody: true, responseBody: true)` ativo em produção (`dio_client.dart` linha 17), podendo expor tokens e dados financeiros em logs. Recomendado: envolver em bloco `assert()`.
+  - **[ALTO – VUL-04]** Ausência de SSL Pinning no `DioClient`. Recomendado: configurar `SecurityContext` com certificado fixo.
+  - **[ALTO – VUL-05]** Inconsistência entre `ApiPaths.base` e `EnvConfig.apiBaseUrl` com fallback `http://` (sem TLS). Recomendado: consolidar em fonte única com fallback `https://`.
+  - **[ALTO – VUL-06]** Mensagens de erro brutas do servidor e stack traces propagados para a UI. Refs: CWE-209.
+  - **[MÉDIA – VUL-07]** Ausência de cooldown local no botão "Reenviar código 2FA". Refs: CWE-307.
+  - **[MÉDIA – VUL-08]** `deviceName` hardcoded como `'App Mobile'` em `verification_page.dart` linha 122.
+  - **[MÉDIA – VUL-09]** Campos de texto livre sem `maxLength` (`create_transaction_page.dart`, `create_category_page.dart`). Refs: CWE-20, CWE-400.
+  - **[MÉDIA – VUL-10]** `Color(int.parse('0xFF${cs.categoryColor}'))` sem validação em `dashboard_page.dart`, pode causar crash. Refs: CWE-248.
+  - **[MÉDIA – VUL-11]** Logout sem dialog de confirmação no `DashboardPage`.
+  - **[MÉDIA – VUL-12]** Possível presença do `.env` no histórico Git. Recomendado: verificar com `git log --all -- .env`.
+  - **[BAIXA – VUL-13]** Ausência de `FLAG_SECURE` no `AndroidManifest.xml`, permitindo screenshots por outros apps.
+  - **[BAIXA – VUL-14]** Builds sem obfuscação (`--obfuscate --split-debug-info`), facilitando engenharia reversa.
+  - **[BAIXA – VUL-15]** Ausência de autenticação biométrica local antes de exibir dados financeiros. Refs: OWASP Mobile M4.
+
 ## [1.5.0] - 2026-06-30
 
 ### Adicionado
